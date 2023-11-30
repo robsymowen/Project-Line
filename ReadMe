@@ -1,3 +1,22 @@
+PROJECT-LINE
+Henry Huang, Robbie Owen, Thomas Garity
+Harvard Vision Lab Fall 2023 - PSY 23356r
+
+
+OVERVIEW
+
+In this notebook, we run an experiment that trains an untrained AlexNet model on line-drawing versions of the ImageNet dataset.
+We hypothesize that the training dataset would steer the model toward human-like shape bias in its feature selection and classification of images.
+We asses the models using Representational Similarity Matrices that employ Pearson similarity scores.
+
+INSTRUCTIONS
+1. Run the conversion notebook, setting an input and output directory at the top
+2. Run the training notebook, also setting an input and output directory.
+3. Run the analysis notebook
+
+
+
+
 First run conversions
 Then run training
 Then run analysis
