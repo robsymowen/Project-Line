@@ -49,13 +49,27 @@ import hashlib
 import shutil
 import glob
 
-# Location of tarred dataset in google drive:
-line_tarred_dir = '/content/drive/MyDrive/ThomasGarity/LineDrawing/AugmentedDataset-c03d48b6d9.tar.gz'
-rgb_tarred_dir  = '/content/drive/MyDrive/ThomasGarity/LineDrawing/imagenette2-320-20bc6e8beb.tar.gz'
+import argparse
+from glob import glob
+import os
 
-# Set paths to models:
-imagenette_checkpoint_path  = '/content/drive/MyDrive/ThomasGarity/LineDrawing/Models/ImagenetteAlexNet_11.pth.tar'
-line_checkpoint_path        = '/content/drive/MyDrive/ThomasGarity/LineDrawing/Models/LineDrawingAlexNet_13.pth.tar'
+
+# Create the parser
+parser = argparse.ArgumentParser(description='Process line drawing conversion arguments.')
+# Add arguments
+parser.add_argument('line_tarred_dir', type=str, help='The root directory of the ImageNet dataset')
+parser.add_argument('rgb_tarred_dir', type=str, help='The directory where output will be stored')
+parser.add_argument('rgb_checkpoint_path', type=str, help='The root directory of the ImageNet dataset')
+parser.add_argument('line_checkpoint_path', type=str, help='The directory where output will be stored')
+
+# Parse the arguments
+args = parser.parse_args()
+
+# Use the parsed arguments
+
+# Directories to our tarred datasets
+line_tarred_dir = args.line_tarred_dir
+rgb_tarred_dir = args.rgb_tarred_dir
 
 if torch.cuda.is_available():
     device = torch.device('cuda')
@@ -86,7 +100,7 @@ def load_model(checkpoint_path):
 
 # Load Models
 
-rgb_model = load_model(imagenette_checkpoint_path)
+rgb_model = load_model(rgb_checkpoint_path)
 line_model = load_model(line_checkpoint_path)
 print(line_model.features)
 
