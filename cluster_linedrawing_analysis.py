@@ -20,6 +20,8 @@ import torchvision.transforms as transforms
 import torchvision.datasets as datasets
 from torchvision import models
 
+import tarfile
+
 
 from sklearn import decomposition
 from sklearn import manifold
@@ -114,7 +116,7 @@ def load_dataset(drive_tarred_dir):
     tarred_dataset_name = drive_tarred_dir.split('/')[-1]
 
     # Create content/data directory, for holding datasets
-    !mkdir -p /content/data
+    os.makedirs('/content/data', exist_ok=True)
 
     # Move dataset to content/data
     dst_path ='/content/data/' + tarred_dataset_name
@@ -125,7 +127,8 @@ def load_dataset(drive_tarred_dir):
     print("Hash is correct")
 
     # Untar Dataset
-    !tar -xf $dst_path -C /content/data/
+    with tarfile.open(dst_path, 'r') as tar:
+        tar.extractall('/content/data/')
 
     dataset_name = tarred_dataset_name.split('-' + get_hash(dst_path))[0]
 
