@@ -10,6 +10,7 @@ Original file is located at
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from torch.nn.modules.container import ModuleList
 import torch.optim as optim
 from torch.optim.lr_scheduler import _LRScheduler
 from torchvision.models import alexnet
@@ -18,6 +19,7 @@ import torch.utils.data as data
 import torchvision.transforms as transforms
 import torchvision.datasets as datasets
 from torchvision import models
+
 
 from sklearn import decomposition
 from sklearn import manifold
@@ -28,16 +30,22 @@ import matplotlib.pyplot as plt
 import numpy as np
 from fastprogress import master_bar, progress_bar
 
-
-from torch.nn.modules.container import ModuleList
 from scipy.special import modfresnelm
+
+
 import pandas as pd
 import seaborn as sns
+import matplotlib.pyplot as plt
+
+from sklearn.metrics import confusion_matrix, accuracy_score, precision_score, recall_score, f1_score
 
 import copy
 import os
 import random
 import time
+import hashlib
+import shutil
+import glob
 
 # Location of tarred dataset in google drive:
 line_tarred_dir = '/content/drive/MyDrive/ThomasGarity/LineDrawing/AugmentedDataset-c03d48b6d9.tar.gz'
@@ -73,14 +81,9 @@ rgb_model = load_model(imagenette_checkpoint_path)
 line_model = load_model(line_checkpoint_path)
 print(line_model.features)
 
-rgb_model
-
 """# Load Datasets from Drive to Local Directory"""
 
 ## Helpers for hashing filename and checking hash
-
-# Import hash function, create hash object.
-import hashlib
 
 # Helper for calculating hash id for any file path
 def get_hash(filename):
@@ -106,8 +109,6 @@ def check_hash_id(filename):
     # Check if the end of the file name matches the hash_id
     if expected_hash != hash_id:
         raise ValueError(f"The end of the file name {expected_hash} does not match the calculated hash_id {hash_id}.")
-
-import shutil
 
 def load_dataset(drive_tarred_dir):
     tarred_dataset_name = drive_tarred_dir.split('/')[-1]
@@ -165,8 +166,6 @@ def create_dataloader(valdir):
 line_val_dataloader = create_dataloader(line_val_dir)
 rgb_val_dataloader = create_dataloader(rgb_val_dir)
 
-import os
-import glob
 
 image_files = glob.glob(os.path.join(line_dir+'/train', "**","**", "*.png"))
 num_images = len(image_files)
@@ -201,8 +200,6 @@ def test_alexnet(model, val_loader, device):
     accuracy = 100 * correct / total
     return accuracy
 
-import pandas as pd
-
 # Test both models on their respective validation sets
 accuracy_results = {'model': [], 'line_val_acc': [], 'rgb_val_acc': []}
 
@@ -217,10 +214,7 @@ def append_results(model, model_name, device):
 append_results(rgb_model, 'rgb model', device)
 append_results(line_model, 'line model', device)
 
-# Display results from models
-import seaborn as sns
-import matplotlib.pyplot as plt
-
+# Display results
 results_df = pd.DataFrame(accuracy_results)
 print(results_df)
 
@@ -274,16 +268,7 @@ show_conv1(line_model)
 print('Convolutional Kernels of Model Trained on Imagenette:')
 show_conv1(rgb_model)
 
-"""#Create Confusion Matrices
-
-
-
-
-
-
-"""
-
-from sklearn.metrics import confusion_matrix, accuracy_score, precision_score, recall_score, f1_score
+"""#Create Confusion Matrices"""
 
 y_true = []
 y_pred = []
