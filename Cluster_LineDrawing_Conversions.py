@@ -27,7 +27,7 @@
         "colab_type": "text"
       },
       "source": [
-        "<a href=\"https://colab.research.google.com/github/robsymowen/Project-Line/blob/main/Cluster_LineDrawing_Conversions.ipynb\" target=\"_parent\"><img src=\"https://colab.research.google.com/assets/colab-badge.svg\" alt=\"Open In Colab\"/></a>"
+        "<a href=\"https://colab.research.google.com/github/robsymowen/Project-Line/blob/main/Cluster_LineDrawing_Conversions.py\" target=\"_parent\"><img src=\"https://colab.research.google.com/assets/colab-badge.svg\" alt=\"Open In Colab\"/></a>"
       ]
     },
     {
@@ -41,17 +41,6 @@
       ],
       "metadata": {
         "id": "mGx4UGDt_2-U"
-      },
-      "execution_count": null,
-      "outputs": []
-    },
-    {
-      "cell_type": "code",
-      "source": [
-        "root_dir ="
-      ],
-      "metadata": {
-        "id": "8z49YyEw56qp"
       },
       "execution_count": null,
       "outputs": []
@@ -93,9 +82,9 @@
         "id": "oyFG0ZWvSjpd",
         "colab": {
           "base_uri": "https://localhost:8080/",
-          "height": 211
+          "height": 194
         },
-        "outputId": "7c0521e7-51f6-4092-bdf1-dbc89a6d9478"
+        "outputId": "afb5e802-76c8-44dd-898c-fa9f2f26e855"
       },
       "execution_count": null,
       "outputs": [
@@ -267,7 +256,7 @@
         "        dataroot = os.path.join(data, folder)\n",
         "        files = glob(os.path.join(dataroot, \"*.JPEG\"))\n",
         "\n",
-        "        results_root = os.path.join(dataa_dir, 'AugmentedDataset_2', trainval)\n",
+        "        results_root = os.path.join(data_dir, 'AugmentedDataset_2', trainval)\n",
         "\n",
         "        # Create results directory with same name\n",
         "        folder_path = os.path.join(results_root, folder)\n",
