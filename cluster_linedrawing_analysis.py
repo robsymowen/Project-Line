@@ -71,6 +71,10 @@ args = parser.parse_args()
 line_tarred_dir = args.line_tarred_dir
 rgb_tarred_dir = args.rgb_tarred_dir
 
+# Directories to our models
+rgb_checkpoint_path = args.rgb_checkpoint_path
+line_checkpoint_path = args.rgb_checkpoint_path
+
 if torch.cuda.is_available():
     device = torch.device('cuda')
     print('CUDA is available. Using GPU.')
