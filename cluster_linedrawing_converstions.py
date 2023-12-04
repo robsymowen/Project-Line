@@ -112,7 +112,7 @@ def convert_images(data_dir, results_root, trainval):
         dataroot = os.path.join(data, folder)
         files = glob(os.path.join(dataroot, "*.JPEG"))
 
-        results_root = os.path.join(dataa_dir, 'AugmentedDataset_2', trainval)
+        results_root = os.path.join(data_dir, 'AugmentedDataset_2', trainval)
 
         # Create results directory with same name
         folder_path = os.path.join(results_root, folder)
