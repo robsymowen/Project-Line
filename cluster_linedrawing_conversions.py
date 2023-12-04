@@ -7,20 +7,27 @@ Original file is located at
     https://colab.research.google.com/drive/1ACvnxs0A8I7eK5tNuPxLZoTXjMckl3Ls
 """
 
-# Input Directory
-IMAGENET_ROOT_DIR = "/content/drive/MyDrive/Classes/Third/PSY2356R/ThomasGarity/LineDrawing/datasets/imagenette2-320"
-
-# Output Directory
-OUTPUT_DIR = '/content/drive/MyDrive/Classes/Third/PSY2356R/ThomasGarity/LineDrawing'
-
 """# **Load Dataset**
-- Director to dataset is stored under 'IMAGENET_ROOT_DIR'
+Use argument parser to input paths to dataset and out put folder with the form:
+python cluster_linedrawing_conversions.py /my/imagenet/root /my/output/folder
 """
-
+import argparse
 from glob import glob
 import os
 
-!ls $IMAGENET_ROOT_DIR
+# Create the parser
+parser = argparse.ArgumentParser(description='Process line drawing conversion arguments.')
+
+# Add arguments
+parser.add_argument('imagenet_root_dir', type=str, help='The root directory of the ImageNet dataset')
+parser.add_argument('output_dir', type=str, help='The directory where output will be stored')
+
+# Parse the arguments
+args = parser.parse_args()
+
+# Use the parsed arguments
+IMAGENET_ROOT_DIR = args.imagenet_root_dir
+OUTPUT_DIR = args.output_dir
 
 """# **Set up Line Drawing Library**
 
