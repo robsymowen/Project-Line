@@ -57,8 +57,8 @@ import os
 # Create the parser
 parser = argparse.ArgumentParser(description='Process line drawing conversion arguments.')
 # Add arguments
-parser.add_argument('line_tarred_dir', type=str, help='The root directory of the ImageNet dataset')
-parser.add_argument('rgb_tarred_dir', type=str, help='The directory where output will be stored')
+parser.add_argument('line_dir', type=str, help='The root directory of the ImageNet dataset')
+parser.add_argument('rgb_dir', type=str, help='The directory where output will be stored')
 parser.add_argument('rgb_checkpoint_path', type=str, help='The root directory of the ImageNet dataset')
 parser.add_argument('line_checkpoint_path', type=str, help='The directory where output will be stored')
 
@@ -67,9 +67,9 @@ args = parser.parse_args()
 
 # Use the parsed arguments
 
-# Directories to our tarred datasets
-line_tarred_dir = args.line_tarred_dir
-rgb_tarred_dir = args.rgb_tarred_dir
+# Directories to our datasets
+line_dir = args.line_dir
+rgb_dir = args.rgb_dir
 
 # Directories to our models
 rgb_checkpoint_path = args.rgb_checkpoint_path
@@ -137,34 +137,7 @@ def check_hash_id(filename):
     if expected_hash != hash_id:
         raise ValueError(f"The end of the file name {expected_hash} does not match the calculated hash_id {hash_id}.")
 
-def load_dataset(drive_tarred_dir):
-    tarred_dataset_name = drive_tarred_dir.split('/')[-1]
-
-    # Create content/data directory, for holding datasets
-    os.makedirs('/content/data', exist_ok=True)
-
-    # Move dataset to content/data
-    dst_path ='/content/data/' + tarred_dataset_name
-    shutil.copy(drive_tarred_dir, dst_path)
-
-    # Check that the dataset is correctly hashed
-    check_hash_id(dst_path)
-    print("Hash is correct")
-
-    # Untar Dataset
-    with tarfile.open(dst_path, 'r') as tar:
-        tar.extractall('/content/data/')
-
-    dataset_name = tarred_dataset_name.split('-' + get_hash(dst_path))[0]
-
-    content_dir_path = '/content/data/' + dataset_name
-
-    return content_dir_path
-
-# Load Datasets and set directories in the local /content/data directory
-line_dir = load_dataset(line_tarred_dir)
-rgb_dir = load_dataset(rgb_tarred_dir)
-
+# Set val directories of either dataset
 line_val_dir = line_dir + '/val'
 rgb_val_dir = rgb_dir + '/val'
 
