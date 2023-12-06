@@ -1,0 +1,3 @@
+[submodule "submodules/informative-drawings"]
+	path = submodules/informative-drawings
+	url = https://github.com/carolineec/informative-drawings.git
