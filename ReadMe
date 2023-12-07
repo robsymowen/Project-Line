@@ -17,8 +17,9 @@ INSTRUCTIONS
 
 GAA Edits
 1. created line_drawing_conversion_redux.py
-2. added https://github.com/carolineec/informative-drawings.git as a submodule so we don't have to git clone in the script, removed cloning from the script.
-3. 
+2. added https://github.com/carolineec/informative-drawings.git as a submodule so we don't have to git clone in the conversion script, removed cloning from the script.
+3. added fix_filenames.py to rename the line-drawing files to match more closely standard imagenet folder structure
+4. added create_ffcv_dataset.py
 
 First run conversions
 Then run training

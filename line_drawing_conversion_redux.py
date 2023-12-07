@@ -11,10 +11,20 @@ Original file is located at
     Example Usage:
     python line_drawing_conversion_redux.py anime_style $SHARED_DATA_DIR/imagenet1k-256/val/n01440764 /n/alvarez_lab_tier1/Users/alvarez/datasets/imagenet1k-line/anime_style/val/n01440764
     
-    python line_drawing_conversion_redux.py anime_style $SHARED_DATA_DIR/imagenet1k-256/val /n/alvarez_lab_tier1/Users/alvarez/datasets/imagenet1k-line/anime_style/val
+    python line_drawing_conversion_redux.py anime_style $SHARED_DATA_DIR/imagenet1k-256/val $SHARED_DATA_DIR/imagenet1k-line/anime_style/val
+    
+    python line_drawing_conversion_redux.py anime_style $SHARED_DATA_DIR/imagenet1k-256/train $SHARED_DATA_DIR/imagenet1k-line/anime_style/train --subfolders
     
     styles = ['anime_style', 'contour_style', 'opensketch_style']
     
+    Tracking progress...    
+    cd $SHARED_DATA_DIR/imagenet1k-line/anime_style/val
+    find . -type f -name "*.png" | wc -l
+    50000
+    
+    cd $SHARED_DATA_DIR/imagenet1k-line/anime_style/train
+    find . -type f -name "*.png" | wc -l
+    1281167
 """
 import os
 import argparse
@@ -34,7 +44,11 @@ def parse_arguments():
                         help='The style for line drawing conversion')
     parser.add_argument('image_dir', type=str, help='The root directory of the ImageNet dataset')
     parser.add_argument('output_dir', type=str, help='The directory where output will be stored')
-
+    
+    parser.add_argument('--subfolders', action='store_true',
+                        help='Whether to include subfolders in the processing (default: False)',
+                        default=True)
+    
     return parser.parse_args()
 
 def get_filename_from_url(url):
@@ -72,28 +86,31 @@ def download_and_unzip_model(checkpoint_url, destination_folder):
         print(f"Error downloading or unzipping model: {e}")
         exit(1)
         
-def get_folders_or_use_base_dir(data_dir):
+def get_folders_or_use_base_dir(data_dir, subfolders):
     """ Get a list of subdirectories in data_dir. If there are none, return a list with only data_dir. """
-    folders = [f for f in os.listdir(data_dir) if os.path.isdir(os.path.join(data_dir, f))]
+    folders = []
+    if subfolders:
+        folders = [f for f in os.listdir(data_dir) if os.path.isdir(os.path.join(data_dir, f))]
 
-    # If there are no subdirectories, use data_dir itself
+    # If there are no folders, use data_dir itself
     if not folders:
         return [data_dir]
     return folders
 
-def convert_images(style, data_dir, results_root):
+def convert_images(style, data_dir, results_root, subfolders):
     """ Convert images to line drawings. """
     conda_env_path = "/n/home02/alvarez/.conda/envs/workshop/bin/python"
     script_path = 'test.py'
     repo_root_path = './submodules/informative-drawings'
-    folders = get_folders_or_use_base_dir(data_dir)
+    folders = get_folders_or_use_base_dir(data_dir, subfolders)
+    
     for folder in progress_bar(folders):
         dataroot = os.path.join(data_dir, folder)
-        files = sorted(glob(os.path.join(dataroot, "*.JPEG")))
+        files = sorted(glob(os.path.join(dataroot, "**/*.JPEG"), recursive=True))
         results_dir = os.path.join(results_root, folder.replace(data_dir,""))
         assert results_dir != data_dir, f"Oops, {results_dir} is same as source {data_dir}"
         os.makedirs(results_dir, exist_ok=True)
-        
+                
         # make sure these files haven't already been generated
         existing_files_count = len(glob(os.path.join(results_dir, style, "*.png")))
         how_many = len(files)
@@ -109,7 +126,7 @@ def main():
     args = parse_arguments()    
     checkpoint_url = 'https://s3.us-east-1.wasabisys.com/visionlab-projects/transfer/informative-drawings/model.zip'
     download_and_unzip_model(checkpoint_url, './submodules/informative-drawings/checkpoints')
-    convert_images(args.style, args.image_dir, args.output_dir)
+    convert_images(args.style, args.image_dir, args.output_dir, args.subfolders)
 
 if __name__ == "__main__":
     main()
