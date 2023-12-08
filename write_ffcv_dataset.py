@@ -44,8 +44,8 @@ from pathlib import Path
 
 from pdb import set_trace
 
-from .utils import datasets
-from .utils import writers 
+from utils import datasets
+from utils import writers 
 
 dataset_names = sorted(name for name in datasets.__dict__
                        if name.islower() and not name.startswith("__")
@@ -71,7 +71,7 @@ Section('cfg', 'arguments to give the writer').params(
     jpeg_quality=Param(float, 'Quality of jpeg images', default=100),
     subset=Param(int, 'How many images to use (-1 for all)', default=-1),
     compress_probability=Param(float, "compress probability; Ignored unless ``write_mode='proportion'``; in the latter case it is the probability with which image is JPEG-compressed", default=None),
-    writer_type=Param(And(str,OneOf(writer_types)), 'Which writer to use', default='image_label')
+    writer_type=Param(And(str,OneOf(writer_types)), 'Which writer to use', default='image_label_index_path')
 )
 
 @section('cfg')

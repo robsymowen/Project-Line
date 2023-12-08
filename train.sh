@@ -5,9 +5,13 @@
 # ssh into cluster (must be on vpn): ssh username@login.rc.fas.harvard.edu
 # cd to this directory cd $PROJECT_DIR/Project-Line
 
-# testing: ./train.sh alexnet in1k_rgb --train_dataset imagenet1k-ffcv/imagenet1k_train_jpg_q100_s256_lmax512_crop.ffcv --val_dataset imagenet1k-ffcv/imagenet1k_val_jpg_q100_s256_lmax512_crop.ffcv --test_dataset imagenet1k-ffcv/imagenet1k_val_jpg_q100_s256_lmax512_crop.ffcv --stop_early_epoch 2 --use_submitit 0 --total_batch_size 512
+# testing: ./train.sh alexnet in1k_rgb --train_dataset imagenet1k-ffcv/imagenet1k_train_jpg_q100_s256_lmax512_crop.ffcv --val_dataset imagenet1k-ffcv/imagenet1k_val_jpg_q100_s256_lmax512_crop.ffcv --test_dataset imagenet1k-ffcv/imagenet1k_val_jpg_q100_s256_lmax512_crop.ffcv --stop_early_epoch 2 --use_submitit 1 --total_batch_size 512
 
-# run it: ./train.sh alexnet in1k_rgb --train_dataset imagenet1k-ffcv/imagenet1k_train_jpg_q100_s256_lmax512_crop.ffcv --val_dataset imagenet1k-ffcv/imagenet1k_val_jpg_q100_s256_lmax512_crop.ffcv --test_dataset imagenet1k-line-ffcv/imagenet1k_anime_val_jpg_q100_s256_lmax512_crop.ffcv --stop_early_epoch 2
+# train rgb, val rgb, test anime_style: 
+# ./train.sh alexnet in1k_rgb --train_dataset imagenet1k-ffcv/imagenet1k_train_jpg_q100_s256_lmax512_crop.ffcv --val_dataset imagenet1k-ffcv/imagenet1k_val_jpg_q100_s256_lmax512_crop.ffcv --test_dataset imagenet1k-line-ffcv/imagenet1k_anime_val_jpg_q100_s256_lmax512_crop.ffcv
+
+# train anime_style, val anime_style, test rgb: 
+# /train.sh alexnet in1k_anime_style --train_dataset imagenet1k-line-ffcv/imagenet1k-anime_style_train_jpg_q100_s256_lmax512_crop-2b7bdbda.ffcv --val_dataset imagenet1k-line-ffcv/imagenet1k-anime_style_val_jpg_q100_s256_lmax512_crop-872c1585.ffcv --test_dataset imagenet1k-ffcv/imagenet1k_val_jpg_q100_s256_lmax512_crop.ffcv
 
 # resume training: ./train.sh alexnet in1k_rgb --train_dataset imagenet1k-ffcv/imagenet1k_train_jpg_q100_s256_lmax512_crop.ffcv --val_dataset imagenet1k-ffcv/imagenet1k_val_jpg_q100_s256_lmax512_crop.ffcv --test_dataset imagenet1k-line-ffcv/imagenet1k_anime_val_jpg_q100_s256_lmax512_crop.ffcv --uuid 20231114_115005
 
@@ -61,6 +65,8 @@ VAL_DATASET=$SHARED_DATA_DIR/imagenet1k-ffcv/imagenet1k_val_jpg_q100_s256_lmax51
 TEST_DATASET=$SHARED_DATA_DIR/imagenet1k-ffcv/imagenet1k_val_jpg_q100_s256_lmax512_crop.ffcv
 TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
 STOP_EARLY_EPOCH=0
+IMAGE_STATS_RGB=imagenet_rgb_avg
+IMAGE_STATS_LINE=imagenet_line_stdonly
 
 # Required positional arguments
 MODEL_ARCH="$1"
@@ -83,7 +89,10 @@ while [[ "$#" -gt 0 ]]; do
         --lr) LR="$2"; shift ;;
         --train_dataset) TRAIN_DATASET="$SHARED_DATA_DIR/$2"; shift ;;
         --val_dataset) VAL_DATASET="$SHARED_DATA_DIR/$2"; shift ;;  
-        --test_dataset) TEST_DATASET="$SHARED_DATA_DIR/$2"; shift ;;  
+        --test_dataset) TEST_DATASET="$SHARED_DATA_DIR/$2"; shift ;;
+        --image_stats_rgb) IMAGE_STATS_RGB="$2"; shift ;;
+        --image_stats_line) IMAGE_STATS_LINE="$2"; shift ;;
+        --test_dataset) TEST_DATASET="$SHARED_DATA_DIR/$2"; shift ;;
         --ignore_account_warning_at_risk_of_burning_lab_fairshare_unnecessarily) IGNORE_ACCOUNT_WARN="$2"; shift ;;
         --uuid) UUID="$2"; shift ;;  # capture provided UUID
         *) echo "Unknown parameter passed: $1"; exit 1 ;;
@@ -162,7 +171,7 @@ check_partition_account() {
 }
 
 # generate local and remote storage directories from arguments
-LOCAL_LOG_SUBFOLDER=$LOG_SUBFOLDER/$DATASET/$MODEL_ARCH/$TRAINING_LOSS/$UUID
+LOCAL_LOG_SUBFOLDER=$LOG_SUBFOLDER/$DATASET/$MODEL_ARCH/$UUID
 BUCKET_SUBFOLDER=$USERNAME/Projects/$PROJECT_NAME/$LOCAL_LOG_SUBFOLDER
 
 echo "LOCAL_LOG_SUBFOLDER: $LOCAL_LOG_SUBFOLDER"
@@ -199,6 +208,8 @@ python3 train.py \
     --data.test_dataset $TEST_DATASET \
     --data.num_workers $NUM_WORKERS \
     --data.in_memory $IN_MEMORY \
+    --data.image_stats_rgb $IMAGE_STATS_RGB \
+    --data.image_stats_line $IMAGE_STATS_LINE \
     --logging.folder $LOG_ROOT/$LOCAL_LOG_SUBFOLDER \
     --logging.bucket_name $BUCKET_NAME \
     --logging.bucket_subfolder $BUCKET_SUBFOLDER \

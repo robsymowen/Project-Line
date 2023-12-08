@@ -59,12 +59,40 @@ from ffcv.fields import IntField, RGBImageField
 
 from utils.utils import LARS, cosine_scheduler, learning_schedule
 from utils.remote_storage import RemoteStorage
+from utils.transforms import InvertTensorImageColors, InvertImageColorsFFCV
 
 from torchvision import models
 
 from pdb import set_trace
 
 import inspect
+
+DEFAULT_CROP_RATIO = 224/256
+
+IMAGE_STATS = dict(
+    imagenet_rgb=dict(
+        mean=np.array([0.485, 0.456, 0.406]) * 255,
+        std=np.array([0.229, 0.224, 0.225]) * 255
+    ),
+    imagenet_rgb_avg=dict(
+        mean=np.array([0.449, 0.449, 0.449]) * 255,
+        std=np.array([0.226, 0.226, 0.226]) * 255
+    ),
+    imagenet_rgb_avg_stdonly=dict(
+        mean=np.array([0.0, 0.0, 0.0]) * 255,
+        std=np.array([0.226, 0.226, 0.226]) * 255
+    ),
+    imagenet_line_stdonly=dict(
+        mean=np.array([0.0, 0.0, 0.0]) * 255,
+        std=np.array([0.181, 0.181, 0.181]) * 255
+    ),
+    no_op=dict(
+        mean=np.array([0.0, 0.0, 0.0]) * 255,
+        std=np.array([1.0, 1.0, 1.0]) * 255
+    )
+)
+
+image_stats_options = list(IMAGE_STATS.keys())
 
 Section('model', 'model details').params(
     arch=Param(str, 'model to use', default='alexnet'),  
@@ -83,7 +111,11 @@ Section('data', 'data related stuff').params(
     test_dataset=Param(str, '.ffcv file to use for testing', default=""),
     num_classes=Param(int, 'The number of image classes', default=1000),
     num_workers=Param(int, 'The number of workers', default=10),
-    in_memory=Param(int, 'does the dataset fit in memory? (1/0)', required=True),
+    in_memory=Param(int, 'does the dataset fit in memory? (1/0)', required=True),    
+    image_stats_rgb=Param(And(str, OneOf(image_stats_options)), 
+                          'imagenet stats to use on rgb images', default='imagenet_rgb_avg'),
+    image_stats_line=Param(And(str, OneOf(image_stats_options)), 
+                           'imagenet stats to use on line drawing images', default='imagenet_line_stdonly'),
 )
 
 Section('logging', 'how to log stuff').params(
@@ -130,9 +162,8 @@ Section('dist', 'distributed training options').params(
     port=Param(str, 'port', default='58492')
 )
 
-IMAGENET_MEAN = np.array([0.485, 0.456, 0.406]) * 255
-IMAGENET_STD = np.array([0.229, 0.224, 0.225]) * 255
-DEFAULT_CROP_RATIO = 224/256
+
+
 
 ################################
 ##### Some Miscs functions #####
@@ -322,27 +353,42 @@ class ImageNetTrainer:
 
     @param('data.num_workers')
     @param('training.batch_size')
+    @param('data.image_stats_rgb')
+    @param('data.image_stats_line')
     @param('training.distributed')
     @param('data.in_memory')
     def create_train_loader(self, train_dataset, num_workers, batch_size,
-                                distributed, in_memory):
+                            image_stats_rgb, image_stats_line,
+                            distributed, in_memory):
         this_device = f'cuda:{self.gpu}'
         train_path = Path(train_dataset)
         assert train_path.is_file()
 
+        is_line_drawing_dataset = '_style_' in train_dataset
+        
+        if is_line_drawing_dataset:
+            mean = IMAGE_STATS[image_stats_line]['mean']
+            std = IMAGE_STATS[image_stats_line]['std']
+        else:
+            mean = IMAGE_STATS[image_stats_rgb]['mean']
+            std = IMAGE_STATS[image_stats_rgb]['std']
+        
         # image pipeline
         self.decoder = ffcv.transforms.RandomResizedCrop((224, 224))
         image_pipeline: List[Operation] = [
             self.decoder,
             RandomHorizontalFlip(),
-            ffcv.transforms.RandomColorJitter(0.8, 0.4, 0.4, 0.2, 0.1),
             ffcv.transforms.RandomGrayscale(0.2),
             ToTensor(),
             ToDevice(ch.device(this_device), non_blocking=True),
             ToTorchImage(),
-            NormalizeImage(IMAGENET_MEAN, IMAGENET_STD, np.float16),
         ]
-
+        
+        if is_line_drawing_dataset:
+            image_pipeline += [InvertImageColorsFFCV()]
+            
+        image_pipeline += [NormalizeImage(mean, std, np.float16)]
+        
         label_pipeline: List[Operation] = [
             IntDecoder(),
             ToTensor(),
@@ -353,6 +399,8 @@ class ImageNetTrainer:
         pipelines={
             'image': image_pipeline,
             'label': label_pipeline,
+            'index': None,    # drop index
+            'rel_path': None, # drop rel_path
         }
 
         order = OrderOption.RANDOM if distributed else OrderOption.QUASI_RANDOM
@@ -377,13 +425,26 @@ class ImageNetTrainer:
 
     @param('data.num_workers')
     @param('validation.batch_size')
+    @param('data.image_stats_rgb')
+    @param('data.image_stats_line')
     @param('validation.resolution')
     @param('training.distributed')
     def create_val_loader(self, val_dataset, num_workers, batch_size,
+                          image_stats_rgb, image_stats_line,
                           resolution, distributed):
         this_device = f'cuda:{self.gpu}'
         val_path = Path(val_dataset)
         assert val_path.is_file()
+        
+        is_line_drawing_dataset = '_style_' in val_dataset
+        
+        if is_line_drawing_dataset:
+            mean = IMAGE_STATS[image_stats_line]['mean']
+            std = IMAGE_STATS[image_stats_line]['std']
+        else:
+            mean = IMAGE_STATS[image_stats_rgb]['mean']
+            std = IMAGE_STATS[image_stats_rgb]['std']
+        
         res_tuple = (resolution, resolution)
         cropper = CenterCropRGBImageDecoder(res_tuple, ratio=DEFAULT_CROP_RATIO)
         image_pipeline = [
@@ -391,9 +452,13 @@ class ImageNetTrainer:
             ToTensor(),
             ToDevice(ch.device(this_device), non_blocking=True),
             ToTorchImage(),
-            NormalizeImage(IMAGENET_MEAN, IMAGENET_STD, np.float16)
         ]
-
+        
+        if is_line_drawing_dataset:
+            image_pipeline += [InvertImageColorsFFCV()]
+            
+        image_pipeline += [NormalizeImage(mean, std, np.float16)]
+        
         label_pipeline = [
             IntDecoder(),
             ToTensor(),
@@ -411,7 +476,9 @@ class ImageNetTrainer:
                         drop_last=False,
                         pipelines={
                             'image': image_pipeline,
-                            'label': label_pipeline
+                            'label': label_pipeline,
+                            'index': None,    # drop index
+                            'rel_path': None, # drop rel_path
                         },
                         custom_fields={
                             'image': RGBImageField,
@@ -786,7 +853,7 @@ def run_submitit(config, folder, bucket_name, bucket_subfolder, ngpus, nodes,  t
     kwargs = {}
     kwargs['slurm_comment'] = comment
     executor.update_parameters(
-        mem_gb=200 * num_gpus_per_node,
+        mem_gb=220 * num_gpus_per_node,
         gpus_per_node=num_gpus_per_node,
         tasks_per_node=num_gpus_per_node, 
         cpus_per_task=16,
