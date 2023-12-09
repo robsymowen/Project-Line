@@ -67,6 +67,7 @@ TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
 STOP_EARLY_EPOCH=0
 IMAGE_STATS_RGB=imagenet_rgb_avg
 IMAGE_STATS_LINE=imagenet_line_stdonly
+EXCLUDE_NODES=""
 
 # Required positional arguments
 MODEL_ARCH="$1"
@@ -79,6 +80,7 @@ while [[ "$#" -gt 0 ]]; do
         --partition) PARTITION="$2"; shift ;;
         --account) ACCOUNT="$2"; shift ;;
         --use_submitit) USE_SUBMITIT="$2"; shift ;;
+        --exclude_nodes) EXCLUDE_NODES="$2"; shift ;;
         --log_subfolder) LOG_SUBFOLDER="$2"; shift ;;
         --recipe) RECIPE="$2"; shift ;;
         --total_batch_size) TOTAL_BATCH_SIZE="$2"; shift ;;
@@ -220,6 +222,7 @@ python3 train.py \
     --dist.ngpus $NUM_GPUS \
     --dist.nodes $NUM_NODES \
     --dist.use_submitit $USE_SUBMITIT \
+    --dist.exclude_nodes $EXCLUDE_NODES \
     --model.arch "$MODEL_ARCH" \
     --training.batch_size "$BATCH_SIZE" \
     --training.epochs "$EPOCHS" \

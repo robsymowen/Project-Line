@@ -1,6 +1,28 @@
 # Let's train!
 
 # ====================================================
+#  RGB model trained with imagenet_rgb_avg stats sgd lr 0.05
+# ====================================================
+
+./train.sh alexnet in1k_rgb \
+    --train_dataset imagenet1k-ffcv/imagenet1k_train_jpg_q100_s256_lmax512_crop.ffcv \
+    --val_dataset imagenet1k-ffcv/imagenet1k_val_jpg_q100_s256_lmax512_crop.ffcv \
+    --test_dataset imagenet1k-line-ffcv/imagenet1k-anime_style_val_jpg_q100_s256_lmax512_crop-872c1585.ffcv \
+    --optimizer sgd \
+    --lr 0.05
+
+# ====================================================
+#  RGB model trained with imagenet_rgb_avg stats sgd lr 0.10
+# ====================================================
+
+./train.sh alexnet in1k_rgb \
+    --train_dataset imagenet1k-ffcv/imagenet1k_train_jpg_q100_s256_lmax512_crop.ffcv \
+    --val_dataset imagenet1k-ffcv/imagenet1k_val_jpg_q100_s256_lmax512_crop.ffcv \
+    --test_dataset imagenet1k-line-ffcv/imagenet1k-anime_style_val_jpg_q100_s256_lmax512_crop-872c1585.ffcv \
+    --optimizer sgd \
+    --lr 0.10
+
+# ====================================================
 #  RGB model trained with imagenet_rgb_avg stats
 # ====================================================
 

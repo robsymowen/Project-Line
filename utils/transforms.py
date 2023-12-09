@@ -20,7 +20,7 @@ class InvertTensorImageColors(nn.Module):
 
     def __call__(self, img):
         # Check if the image is in uint8 format
-        if img.dtype == torch.uint8 or inp.dtype == np.uint8:
+        if img.dtype == torch.uint8 or img.dtype == np.uint8:
             return 255 - img
         # assume the image is in float format
         else:

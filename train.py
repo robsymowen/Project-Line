@@ -146,7 +146,7 @@ Section('training', 'training hyper param stuff').params(
     label_smoothing=Param(float, 'label smoothing parameter', default=0),
     distributed=Param(int, 'is distributed?', default=0),
     clip_grad=Param(float, 'sign the weights of last residual block', default=0),
-    stop_early_epoch=Param(int, 'For debugging, stop afer this many epochs (ignored if less than 1)', default=0),
+    stop_early_epoch=Param(int, 'For debugging, stop afer this many epochs (ignored if less than 1)', default=0),    
 )
 
 Section('dist', 'distributed training options').params(
@@ -159,7 +159,8 @@ Section('dist', 'distributed training options').params(
     partition=Param(str, 'partition', default="kempner"),
     account=Param(str, 'account', default="kempner_Alvarez_Lab"),
     address=Param(str, 'address', default='localhost'),
-    port=Param(str, 'port', default='58492')
+    port=Param(str, 'port', default='58492'),
+    exclude_nodes=Param(str, 'nodes to exclude when submitting (iff there are issues)', default='')
 )
 
 
@@ -840,7 +841,8 @@ def make_config(quiet=False):
 @param('dist.account')
 @param('dist.comment')
 @param('dist.port')
-def run_submitit(config, folder, bucket_name, bucket_subfolder, ngpus, nodes,  timeout, partition, account, comment, port):
+@param('dist.exclude_nodes')
+def run_submitit(config, folder, bucket_name, bucket_subfolder, ngpus, nodes,  timeout, partition, account, comment, port, exclude_nodes):
     folder = folder.replace("//","/")
     Path(folder).mkdir(parents=True, exist_ok=True)
     executor = submitit.AutoExecutor(folder=folder, slurm_max_num_timeout=30)
@@ -862,6 +864,7 @@ def run_submitit(config, folder, bucket_name, bucket_subfolder, ngpus, nodes,  t
         slurm_partition=partition,
         slurm_account=account,
         slurm_signal_delay_s=120,
+        slurm_exclude=exclude_nodes,
         **kwargs
     )
 
