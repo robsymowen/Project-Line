@@ -4,10 +4,7 @@ import importlib.util
 
 import torch, torchvision
 
-def _clone_submodules():
-    # Path to the root of the repository cloned by torch.hub
-    repo_root = os.path.dirname(os.path.abspath(__file__))
-
+def _clone_submodules(rep_root):
     # Git commands to initialize and update submodules
     cmds = [
         ['git', 'submodule', 'init'],
@@ -17,12 +14,11 @@ def _clone_submodules():
     for cmd in cmds:
         subprocess.run(cmd, cwd=repo_root, check=True)
 
-# Call the function to clone submodules
-_clone_submodules()
-
 # add informative models module
 hub_dir = torch.hub.get_dir()
-module_file_path = os.path.join(hub_dir, 'robsymowen_Project-Line_main', 'submodules', 'informative-drawings', 'model.py')
+rep_root = os.path.join(hub_dir, 'robsymowen_Project-Line_main', 'submodules', 'informative-drawings')
+_clone_submodules(rep_root)
+module_file_path = os.path.join(rep_root, 'model.py')
 module_name = 'informative_drawings'
 spec = importlib.util.spec_from_file_location(module_name, module_file_path)
 models = importlib.util.module_from_spec(spec)
