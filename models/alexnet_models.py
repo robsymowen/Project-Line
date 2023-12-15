@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 import numpy as np
 from torchvision import transforms
+import torchvision.models as tv_models
 
 class InvertTensorImageColors(nn.Module):
     def __init__(self):
