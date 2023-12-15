@@ -2,6 +2,16 @@ import torch.nn as nn
 import numpy as np
 from PIL import Image
 
+import requests
+from io import BytesIO
+
+def download_image(url="https://dl.fbaipublicfiles.com/dino/img.png"):
+    response = requests.get(url)
+    img = Image.open(BytesIO(response.content))
+    img = img.convert('RGB')
+    
+    return img
+    
 class ProcessLineDrawing(nn.Module):
     def __init__(self, mean, std, repeat=True, invert=True):
         super().__init__()  # Call to the superclass initializer
