@@ -108,7 +108,55 @@ def print_top1_acc():
   
 def show_conv1():
   return alexnet_models.show_conv1
+
+# ================================================
+#  hybrid models
+# ================================================
+
+# add informative models module
+hub_dir = torch.hub.get_dir()
+repo_root = os.path.dirname(os.path.abspath(__file__))
+module_file_path = os.path.join(repo_root, 'models', 'hybrid_models.py')
+module_name = 'hybrid_models'
+spec = importlib.util.spec_from_file_location(module_name, module_file_path)
+hybrid_models = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(hybrid_models)
+
+backbone_names = dict(
+  anime_style = dict(    
+    sgd_lr005="alexnet_anime_stats_line_stdonly_sgd_lr0.005",
+    sgd_lr01="alexnet_anime_stats_line_stdonly_sgd_lr0.01",
+    sgd_lr005_rgb_stats="alexnet_anime_stats_rgb_avg_sgd_lr0.005",
+    adamw="alexnet_anime_stats_line_stdonly_adamw",
+  )
+)
+
+def _load_hybrid_alexnet(style, weights_name, img_size=256):
+
+  # get the line drawing model
+  net_G, transform_r = _load_generator(style, img_size=img_size)
+
+  # get the alexnet backbone
+  backbone_name = backbone_names[style][weights_name]
+  backbone, transform = alexnet_models.load_model(backbone_name)
+
+  # get the normalization stats from the backbone transforms
+  preprocess = hybrid_models.ProcessLineDrawing(transform.transforms[-1].mean,
+                                                transform.transforms[-1].std)
   
+  model = hybrid_models.HybridModel(net_G, preprocess, backbone)
+
+  return model, transform_r
   
-  
+def hybrid_anime_alexnet_sgd_lr005(img_size=256):
+  return _load_hybrid_alexnet("anime_style", "sgd_lr005", img_size=img_size)
+
+def hybrid_anime_alexnet_sgd_lr01(img_size=256):
+  return _load_hybrid_alexnet("anime_style", "sgd_lr01", img_size=img_size)
+
+def hybrid_anime_alexnet_sgd_lr005_rgb_stats(img_size=256):
+  return _load_hybrid_alexnet("anime_style", "sgd_lr005_rgb_stats", img_size=img_size)
+
+def hybrid_anime_alexnet_adamw(img_size=256):
+  return _load_hybrid_alexnet("anime_style", "adamw", img_size=img_size)
 
