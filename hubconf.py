@@ -41,7 +41,7 @@ def _load_generator(style, img_size=256):
 
   transforms_r = torchvision.transforms.Compose([
       ConvertToRGB(),
-      torchvision.transforms.Resize(img_size, Image.BICUBIC), 
+      torchvision.transforms.Resize(img_size, 3), # Image.BICUBIC = 3
       torchvision.transforms.ToTensor()
   ])
 
