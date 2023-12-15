@@ -1,8 +1,10 @@
+import os
 import torch, torchvision
 import importlib.util
 
 # add informative models module
-module_file_path = 'submodules/informative-drawings/model.py'
+hub_dir = torch.hub.get_dir()
+module_file_path = os.path.join(hub_dir, 'robsymowen_Project-Line_main', 'submodules', 'informative-drawings', 'model.py')
 module_name = 'informative_drawings'
 spec = importlib.util.spec_from_file_location(module_name, module_file_path)
 models = importlib.util.module_from_spec(spec)
