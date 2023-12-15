@@ -160,3 +160,5 @@ def hybrid_anime_alexnet_sgd_lr005_rgb_stats(img_size=256):
 def hybrid_anime_alexnet_adamw(img_size=256):
   return _load_hybrid_alexnet("anime_style", "adamw", img_size=img_size)
 
+def download_image():
+  return hybrid_models.download_image
