@@ -3,6 +3,12 @@ import importlib.util
 
 import torch, torchvision
 
+dependencies = ['torch', 'torchvision']
+
+# ================================================
+#  informative-drawings models
+# ================================================
+
 # add informative models module
 hub_dir = torch.hub.get_dir()
 repo_root = os.path.dirname(os.path.abspath(__file__))
@@ -11,8 +17,6 @@ module_name = 'informative_drawings'
 spec = importlib.util.spec_from_file_location(module_name, module_file_path)
 models = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(models)
-
-dependencies = ['torch', 'torchvision']
 
 def _load_generator(style, img_size=256):
   urls = dict(
@@ -55,3 +59,56 @@ def contour_style(img_size=256):
 
 def opensketch_style(img_size=256):
   return _load_generator("opensketch_style", img_size=img_size)
+
+# ================================================
+#  alexnet models trained on informative drawings
+# ================================================
+
+# add informative models module
+hub_dir = torch.hub.get_dir()
+repo_root = os.path.dirname(os.path.abspath(__file__))
+module_file_path = os.path.join(repo_root, 'models', 'alexnet_models.py')
+module_name = 'alexnet_models'
+spec = importlib.util.spec_from_file_location(module_name, module_file_path)
+alexnet_models = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(alexnet_models)
+
+def alexnet_rgb_stats_rgb_avg_adamw():
+  return alexnet_models.load_model("alexnet_rgb_stats_rgb_avg_adamw")
+
+def alexnet_anime_stats_line_stdonly_adamw():
+  return alexnet_models.load_model("alexnet_anime_stats_line_stdonly_adamw")
+
+def alexnet_rgb_stats_rgb_avg_adamw_div10():
+  return alexnet_models.load_model("alexnet_rgb_stats_rgb_avg_adamw_div10")
+
+def alexnet_rgb_stats_rgb_avg_adamw_div2():
+  return alexnet_models.load_model("alexnet_rgb_stats_rgb_avg_adamw_div2")
+
+def alexnet_rgb_stats_rgb_avg_sgd_lr0_01():
+  return alexnet_models.load_model("alexnet_rgb_stats_rgb_avg_sgd_lr0.01")
+
+def alexnet_rgb_stats_rgb_avg_sgd_lr0_001():
+  return alexnet_models.load_model("alexnet_rgb_stats_rgb_avg_sgd_lr0.001")
+
+def alexnet_rgb_stats_rgb_avg_sgd_lr0_005():
+  return alexnet_models.load_model("alexnet_rgb_stats_rgb_avg_sgd_lr0.005")
+
+def alexnet_anime_stats_line_stdonly_sgd_lr0_005():
+  return alexnet_models.load_model("alexnet_anime_stats_line_stdonly_sgd_lr0.005")
+
+def alexnet_anime_stats_line_stdonly_sgd_lr0_01():
+  return alexnet_models.load_model("alexnet_anime_stats_line_stdonly_sgd_lr0.01")
+
+def alexnet_anime_stats_rgb_avg_sgd_lr0_005():
+  return alexnet_models.load_model("alexnet_anime_stats_rgb_avg_sgd_lr0.005")
+
+def print_top1_acc():
+  return alexnet_models.print_top1_acc
+  
+def show_conv1():
+  return alexnet_models.show_conv1
+  
+  
+  
+
