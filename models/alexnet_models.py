@@ -1,10 +1,57 @@
+import os
 import torch
 import torch.nn as nn
 import numpy as np
 from torchvision import transforms
 import torchvision.models as tv_models
 from torch.hub import load_state_dict_from_url
+from torchvision.utils import make_grid
 
+import matplotlib.pyplot as plt
+import pandas as pd
+import requests
+import json
+import urllib
+
+def get_params_from_url(target_url):
+    with urllib.request.urlopen(target_url) as f:
+        params = json.loads(f.read())
+    return params
+
+def load_remote_log(url, cache_dir=None):
+    # Determine the filename from the URL
+    filename = url.split('/')[-1]
+    file_path = os.path.join(cache_dir, filename) if cache_dir else filename
+
+    if cache_dir is not None:
+      os.makedirs(cache_dir, exist_ok=True)  # ensures the cache directory exists
+
+    # Check if the file is cached locally
+    if cache_dir is not None and os.path.exists(file_path):
+        with open(file_path, 'r') as file:
+            lines = file.readlines()
+    else:
+        response = requests.get(url)
+
+        # Check if the request was successful
+        if response.status_code != 200:
+            raise Exception(f"Failed to retrieve data: HTTP {response.status_code}")
+
+        lines = response.text.splitlines()
+
+        # Cache the file locally if cache_dir is provided
+        if cache_dir:
+            os.makedirs(cache_dir, exist_ok=True)
+            with open(file_path, 'w') as file:
+                file.write('\n'.join(lines))
+
+    data = []
+    for line in lines:
+        json_object = json.loads(line)
+        data.append(json_object)
+
+    return pd.DataFrame(data)
+    
 class InvertTensorImageColors(nn.Module):
     def __init__(self):
         super(InvertTensorImageColors, self).__init__()
