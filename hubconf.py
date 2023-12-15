@@ -48,10 +48,10 @@ def _load_generator(style, img_size=256):
   return net_G, transforms_r
 
 def anime_style(img_size=256):
-  return load_generator("anime_style", img_size=img_size)
+  return _load_generator("anime_style", img_size=img_size)
 
 def contour_style(img_size=256):
-  return load_generator("contour_style", img_size=img_size)
+  return _load_generator("contour_style", img_size=img_size)
 
 def opensketch_style(img_size=256):
-  return load_generator("opensketch_style", img_size=img_size)
+  return _load_generator("opensketch_style", img_size=img_size)
