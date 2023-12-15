@@ -1,24 +1,12 @@
 import os
-import subprocess
 import importlib.util
 
 import torch, torchvision
 
-def _clone_submodules(repo_root):
-    # Git commands to initialize and update submodules
-    cmds = [
-        ['git', 'submodule', 'init'],
-        ['git', 'submodule', 'update']
-    ]
-
-    for cmd in cmds:
-        subprocess.run(cmd, cwd=repo_root, check=True)
-
 # add informative models module
 hub_dir = torch.hub.get_dir()
-repo_root = os.path.join(hub_dir, 'robsymowen_Project-Line_main')
-_clone_submodules(repo_root)
-module_file_path = os.path.join(repo_root, 'submodules', 'informative-drawings', 'model.py')
+repo_root = os.path.dirname(os.path.abspath(__file__))
+module_file_path = os.path.join(repo_root, 'models', 'informative_drawings_models.py')
 module_name = 'informative_drawings'
 spec = importlib.util.spec_from_file_location(module_name, module_file_path)
 models = importlib.util.module_from_spec(spec)
